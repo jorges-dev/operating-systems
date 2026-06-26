@@ -1,0 +1,60 @@
+# -------------------------------------------------------
+# docker-compose.yml
+# Orquestra todos os serviços da infraestrutura
+# -------------------------------------------------------
+
+services:
+
+  # ---------------------------------------------------
+  # SERVIÇO WEB: Aplicação Node.js
+  # ---------------------------------------------------
+  web:
+    build: ./app              # Constrói a imagem a partir do Dockerfile em ./app
+    container_name: so-app   # Nome fixo do container (usado nos comandos docker)
+    ports:
+      - "3000:3000"           # Mapeia porta 3000 do host -> porta 3000 do container
+    environment:
+      - ALUNO=Jorge Eduardo Salvador   # Variável de ambiente com o nome do aluno
+      - DB_HOST=db                     # Endereço do banco (nome do serviço na rede)
+      - DB_PORT=3306
+    networks:
+      - rede-so               # Conecta à rede privada definida abaixo
+    depends_on:
+      - db                    # Aguarda o serviço db iniciar antes de subir
+    mem_limit: 128m           # Limite de 128 MB de RAM (cgroups do kernel Linux)
+    restart: unless-stopped   # Reinicia automaticamente se travar
+
+  # ---------------------------------------------------
+  # SERVIÇO DE BANCO DE DADOS: MySQL
+  # ---------------------------------------------------
+  db:
+    image: mysql:8.0          # Usa a imagem oficial do MySQL 8.0 do Docker Hub
+    container_name: so-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=root123    # Senha do root (só para desenvolvimento)
+      - MYSQL_DATABASE=escola          # Cria o banco de dados automaticamente
+      - MYSQL_USER=appuser             # Usuário da aplicação
+      - MYSQL_PASSWORD=app123          # Senha do usuário da aplicação
+    volumes:
+      - dados-mysql:/var/lib/mysql     # Volume persistente para os dados do banco
+    networks:
+      - rede-so               # Mesma rede privada — permite comunicação com 'web'
+    mem_limit: 128m           # Limite de memória também para o banco
+    restart: unless-stopped
+
+# -------------------------------------------------------
+# REDES: Rede privada isolada para comunicação entre containers
+# O Docker cria uma rede bridge com DNS interno:
+# o container 'web' acessa o banco simplesmente pelo nome 'db'
+# -------------------------------------------------------
+networks:
+  rede-so:
+    driver: bridge            # Tipo bridge: rede virtual isolada no host
+
+# -------------------------------------------------------
+# VOLUMES: Armazenamento persistente para o MySQL
+# Os dados sobrevivem mesmo se o container for removido
+# -------------------------------------------------------
+volumes:
+  dados-mysql:
+    driver: local             # Armazenado localmente no host Docker
