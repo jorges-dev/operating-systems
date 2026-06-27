@@ -1,7 +1,6 @@
 {
-  "name": "so-n3-app",
+  "name": "n3-so",
   "version": "1.0.0",
-  "description": "Aplicação web para trabalho N3 de Sistemas Operacionais",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

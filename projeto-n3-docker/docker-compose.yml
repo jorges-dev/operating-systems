@@ -1,0 +1,35 @@
+services:
+
+  web:
+    build: ./app
+    container_name: so-app
+    ports:
+      - "3000:3000"
+    environment:
+        - ALUNO=Jorge Eduardo Salvador
+    networks:
+      - rede-so
+    depends_on:
+      - db
+    mem_limit: 128m
+
+  db:
+      image: mysql:8.0
+      container_name: so-db
+      environment:
+        - MYSQL_ROOT_PASSWORD=root123
+        - MYSQL_DATABASE=escola
+        - MYSQL_USER=appuser
+        - MYSQL_PASSWORD=app123
+      volumes:
+        - dados-mysql:/var/lib/mysql
+      networks:
+        - rede-so
+      mem_limit: 128m
+
+networks:
+  rede-so:
+    driver: bridge
+
+volumes:
+  dados-mysql:
